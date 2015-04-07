@@ -5,8 +5,6 @@ Has AnimatableImageView that handles Animatable background and image lifecycle a
 
 Work in progress. Has some bugs.
 
-```
-
 Min API level 7
 
 
