@@ -51,9 +51,7 @@ public class GifDrawable extends AnimationDrawable {
         mCurrentDrawable = new BitmapDrawable(res, mGifDecoder.getNextFrame());
         mFramesDrawn = 1;
         mMaxFrames = gifDecoder.loopCount * gifDecoder.frameCount;
-        for (int i = 0; i < mGifDecoder.frameCount; i++) {
-            addFrame(mCurrentDrawable, Math.max(MIN_DELAY, mGifDecoder.getDelay(i)));
-        }
+        addFrame(mCurrentDrawable, Math.max(MIN_DELAY, mGifDecoder.getDelay(0)));
     }
 
     @Override

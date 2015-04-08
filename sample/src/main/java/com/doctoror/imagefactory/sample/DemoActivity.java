@@ -16,6 +16,7 @@
 
 package com.doctoror.imagefactory.sample;
 
+import com.doctoror.imagefactory.GifDecoder2;
 import com.doctoror.imagefactory.ImageFactory;
 
 import android.content.Context;
@@ -41,6 +42,7 @@ public class DemoActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_demo);
 
+        //testImageInfo();
         final GridView grid = (GridView) findViewById(R.id.activity_demo_grid);
         grid.setAdapter(new DemoAdapter(this, generateImageInfo()));
     }
@@ -48,9 +50,9 @@ public class DemoActivity extends ActionBarActivity {
     @NonNull
     private List<Drawable> generateImageInfo() {
         final String[] names = new String[]{
-                "Rotating_earth_(large).gif",
-                "Static_earth.gif",
-                "LoopOnce.gif"
+                "Rotating_earth_(large).gif"
+//                "Static_earth.gif",
+//                "LoopOnce.gif",
 //                "small.gif",
 //                "smallest.gif",
 //                "ru9gag.gif",
@@ -88,6 +90,52 @@ public class DemoActivity extends ActionBarActivity {
         }
         return list;
     }
+
+//    private void testImageInfo() {
+//        final String[] names = new String[]{
+//                "Rotating_earth_(large).gif",
+//                //"Static_earth.gif",
+//                "LoopOnce.gif"
+////                "small.gif",
+////                "smallest.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag1.gif",
+////                "ru9gag3.gif",
+////                "ru9gag4.gif"
+//        };
+//        for (final String name : names) {
+//            System.out.println("name: " + name);
+//            InputStream is = null;
+//            try {
+//                is = getAssets().open(name);
+//                final GifDecoder2 decoder2 = new GifDecoder2();
+//                decoder2.read(is, is.available());
+//                System.out.println("Status: " + decoder2.getStatus());
+//                System.out.println("loop count: " + decoder2.getLoopCount());
+//                for (int i = 0; i < decoder2.getFrameCount(); i++) {
+//                    System.out.println("delay: " + decoder2.getDelay(i));
+//                }
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } finally {
+//                if (is != null) {
+//                    try {
+//                        is.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private static final class DemoAdapter extends BaseAdapter2<Drawable> {
 

@@ -23,6 +23,7 @@ import com.drew.lang.StreamReader;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Movie;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -57,8 +58,8 @@ public final class ImageFactory {
     public static Drawable decodeImage(@NonNull final Resources res,
             @NonNull final InputStream is) {
         try {
-            if (is.markSupported()) {
-                is.mark(-1);
+            if (false && is.markSupported()) {// TODO
+                is.mark(Integer.MAX_VALUE);
                 final boolean isAnimatedGif = isAnimatedGif(new StreamReader(is));
                 is.reset();
                 if (isAnimatedGif) {
@@ -119,7 +120,7 @@ public final class ImageFactory {
      * @return decoded {@link GifDrawable} or null on error
      */
     @Nullable
-    private static Drawable decodeAnimatedGif(@NonNull final Resources res,
+    public static Drawable decodeAnimatedGif(@NonNull final Resources res,
             @NonNull final InputStream data) {
         final GifDecoder gifDecoder = new GifDecoder();
         try {
@@ -133,8 +134,37 @@ public final class ImageFactory {
         return new GifDrawable(res, gifDecoder);
     }
 
+    /**
+     * Returns decoded {@link GifDrawable}. Returns null on error.
+     *
+     * @param res  Resources
+     * @param data InputStream for image
+     * @return decoded {@link GifDrawable} or null on error
+     */
     @Nullable
-    private static Drawable decodeAnimatedGif(@NonNull final Resources res,
+    public static Drawable decodeAnimatedGif2(@NonNull final Resources res,
+            @NonNull final InputStream data) {
+        final GifDecoder2 gifDecoder = new GifDecoder2();
+        try {
+            data.mark(Integer.MAX_VALUE);
+            final int status = gifDecoder.read(data, data.available());
+            data.reset();
+            if (!checkGifDecoderStatus(status)) {
+                return null;
+            }
+            final Movie movie = Movie.decodeStream(data);
+            if (movie == null) {
+                return null;
+            }
+            return new GifDrawable2(res, gifDecoder, movie);
+        } catch (IOException e) {
+            Log.w(TAG, "decodeAnimatedGif2: " + e);
+            return null;
+        }
+    }
+
+    @Nullable
+    public static Drawable decodeAnimatedGif(@NonNull final Resources res,
             @NonNull final byte[] data) {
         final GifDecoder gifDecoder = new GifDecoder();
         final int status = gifDecoder.read(data);
@@ -142,6 +172,21 @@ public final class ImageFactory {
             return null;
         }
         return new GifDrawable(res, gifDecoder);
+    }
+
+    @Nullable
+    public static Drawable decodeAnimatedGif2(@NonNull final Resources res,
+            @NonNull final byte[] data) {
+        final GifDecoder2 gifDecoder = new GifDecoder2();
+        final int status = gifDecoder.read(data);
+        if (!checkGifDecoderStatus(status)) {
+            return null;
+        }
+        final Movie movie = Movie.decodeByteArray(data, 0, data.length);
+        if (movie == null) {
+            return null;
+        }
+        return new GifDrawable2(res, gifDecoder, movie);
     }
 
     private static boolean checkGifDecoderStatus(final int status) {
@@ -237,6 +282,6 @@ public final class ImageFactory {
         // Return true if is Application Extension. Magic numbers! Should have been 0xff but -1 or -7 encountered.
         return appExtensionOrGraphicBlock == 0xff
                 || appExtensionOrGraphicBlock == -1
-                        || appExtensionOrGraphicBlock == -7;
+                || appExtensionOrGraphicBlock == -7;
     }
 }
