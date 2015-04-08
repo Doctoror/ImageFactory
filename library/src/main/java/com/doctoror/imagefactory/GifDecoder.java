@@ -262,24 +262,16 @@ final class GifDecoder {
         long startTime = System.currentTimeMillis();
         if (is != null) {
             try {
-                int capacity = (contentLength > 0) ? (contentLength + 4096) : 4096;
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream(capacity);
+                final int capacity = (contentLength > 0) ? (contentLength + 4096) : 4096;
+                final ByteArrayOutputStream buffer = new ByteArrayOutputStream(capacity);
                 int nRead;
                 byte[] data = new byte[16384];
                 while ((nRead = is.read(data, 0, data.length)) != -1) {
                     buffer.write(data, 0, nRead);
                 }
-                buffer.flush();
-
                 read(buffer.toByteArray());
             } catch (IOException e) {
                 Log.w(TAG, "Error reading data from stream", e);
-            } finally {
-                try {
-                    is.close();
-                } catch (Exception e) {
-                    Log.w(TAG, "Error closing stream", e);
-                }
             }
         } else {
             status = STATUS_OPEN_ERROR;
