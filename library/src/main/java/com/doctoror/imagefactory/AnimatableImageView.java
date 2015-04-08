@@ -61,8 +61,8 @@ public class AnimatableImageView extends ImageView {
 
     @Override
     protected void onDraw(@NonNull final Canvas canvas) {
-        super.onDraw(canvas);
         mDelegate.onDraw(this);
+        super.onDraw(canvas);
     }
 
     @Override

@@ -50,8 +50,9 @@ public class DemoActivity extends ActionBarActivity {
         final String[] names = new String[]{
                 "Rotating_earth_(large).gif",
                 "Static_earth.gif",
-                "small.gif",
-                "smallest.gif",
+                "LoopOnce.gif"
+//                "small.gif",
+//                "smallest.gif",
 //                "ru9gag.gif",
 //                "ru9gag.gif",
 //                "ru9gag.gif",
@@ -59,10 +60,10 @@ public class DemoActivity extends ActionBarActivity {
 //                "ru9gag.gif",
 //                "ru9gag.gif",
 //                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag1.gif",
-                "ru9gag3.gif",
-                "ru9gag4.gif"
+//                "ru9gag.gif",
+//                "ru9gag1.gif",
+//                "ru9gag3.gif",
+//                "ru9gag4.gif"
         };
         final List<Drawable> list = new ArrayList<>(names.length);
         for (final String name : names) {

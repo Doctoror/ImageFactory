@@ -234,7 +234,9 @@ public final class ImageFactory {
             return false;
         }
         final byte appExtensionOrGraphicBlock = reader.getByte();
-        // Return true if is Application Extension
-        return appExtensionOrGraphicBlock == -1;
+        // Return true if is Application Extension. Magic numbers! Should have been 0xff but -1 or -7 encountered.
+        return appExtensionOrGraphicBlock == 0xff
+                || appExtensionOrGraphicBlock == -1
+                        || appExtensionOrGraphicBlock == -7;
     }
 }
