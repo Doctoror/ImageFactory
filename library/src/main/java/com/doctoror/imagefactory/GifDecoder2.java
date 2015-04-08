@@ -160,12 +160,6 @@ public final class GifDecoder2 {
                 read(buffer.toByteArray());
             } catch (IOException e) {
                 Log.w(TAG, "Error reading data from stream", e);
-            } finally {
-                try {
-                    is.close();
-                } catch (Exception e) {
-                    Log.w(TAG, "Error closing stream", e);
-                }
             }
         } else {
             status = STATUS_OPEN_ERROR;

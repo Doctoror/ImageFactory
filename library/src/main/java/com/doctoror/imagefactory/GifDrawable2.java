@@ -16,7 +16,7 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
 /**
- * Created by doctor on 4/8/15.
+ * {@link AnimationDrawable} that draws animated GIF from {@link GifDecoder2}
  */
 public class GifDrawable2 extends AnimationDrawable {
 
@@ -29,7 +29,7 @@ public class GifDrawable2 extends AnimationDrawable {
 
     private final Movie mMovie;
 
-    private int mMovieDuration;
+    private final int mMovieDuration;
     private final int mMovieHeight;
     private final int mMovieWidth;
     private final Bitmap mTmpBitmap;
@@ -47,20 +47,20 @@ public class GifDrawable2 extends AnimationDrawable {
     public GifDrawable2(@NonNull final Resources res, @NonNull final GifDecoder2 gifDecoder,
             @NonNull final Movie movie) {
         mGifDecoder = gifDecoder;
-        mFramesDrawn = 1;
         mMaxFrames = gifDecoder.loopCount * gifDecoder.frameCount;
         mMovie = movie;
         gifDecoder.advance();
 
-        //mMovieDuration = movie.duration();
-        //if (mMovieDuration <= 0) {
+        int movieDuration = movie.duration();
+        if (movieDuration <= 0) {
             for (int i = 0; i < gifDecoder.frameCount; i++) {
-                mMovieDuration += gifDecoder.getDelay(i);
+                movieDuration += gifDecoder.getDelay(i);
             }
-        //}
+        }
+        mMovieDuration = movieDuration;
 
-        System.out.println("c duration: " + mMovieDuration);
-        System.out.println("m duration: " + movie.duration());
+        //System.out.println("c duration: " + mMovieDuration);
+        //System.out.println("m duration: " + movie.duration());
 
         mMovieHeight = movie.height();
         mMovieWidth = movie.width();
@@ -128,7 +128,7 @@ public class GifDrawable2 extends AnimationDrawable {
     @Override
     public void draw(final Canvas canvas) {
         if (mMovie.width() == 0 || mMovie.height() == 0) {
-            return; // nothing to draw (empty bounds)
+            return; // nothing to draw
         }
 
         if (mMovieTime > mMovieDuration) {

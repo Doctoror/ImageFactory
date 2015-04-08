@@ -54,12 +54,16 @@ public final class AnimatableDelegate {
     public void onDraw(@NonNull final Drawable.Callback callback) {
         final Drawable drawable = getDrawable();
         if (drawable instanceof Animatable) {
-            drawable.setCallback(callback);
+            if (drawable.getCallback() != callback) {
+                drawable.setCallback(callback);
+            }
         }
 
         final Drawable background = getBackground();
         if (background instanceof Animatable) {
-            background.setCallback(callback);
+            if (background.getCallback() != callback) {
+                background.setCallback(callback);
+            }
         }
     }
 

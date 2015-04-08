@@ -58,7 +58,7 @@ public final class ImageFactory {
     public static Drawable decodeImage(@NonNull final Resources res,
             @NonNull final InputStream is) {
         try {
-            if (false && is.markSupported()) {// TODO
+            if (is.markSupported()) {
                 is.mark(Integer.MAX_VALUE);
                 final boolean isAnimatedGif = isAnimatedGif(new StreamReader(is));
                 is.reset();
@@ -120,7 +120,7 @@ public final class ImageFactory {
      * @return decoded {@link GifDrawable} or null on error
      */
     @Nullable
-    public static Drawable decodeAnimatedGif(@NonNull final Resources res,
+    public static Drawable decodeAnimatedGifDeprecated(@NonNull final Resources res,
             @NonNull final InputStream data) {
         final GifDecoder gifDecoder = new GifDecoder();
         try {
@@ -142,7 +142,7 @@ public final class ImageFactory {
      * @return decoded {@link GifDrawable} or null on error
      */
     @Nullable
-    public static Drawable decodeAnimatedGif2(@NonNull final Resources res,
+    public static Drawable decodeAnimatedGif(@NonNull final Resources res,
             @NonNull final InputStream data) {
         final GifDecoder2 gifDecoder = new GifDecoder2();
         try {
@@ -153,18 +153,18 @@ public final class ImageFactory {
                 return null;
             }
             final Movie movie = Movie.decodeStream(data);
-            if (movie == null) {
+            if (movie == null || movie.width() <= 0 || movie.height() <= 0) {
                 return null;
             }
             return new GifDrawable2(res, gifDecoder, movie);
         } catch (IOException e) {
-            Log.w(TAG, "decodeAnimatedGif2: " + e);
+            Log.w(TAG, "decodeAnimatedGif: " + e);
             return null;
         }
     }
 
     @Nullable
-    public static Drawable decodeAnimatedGif(@NonNull final Resources res,
+    public static Drawable decodeAnimatedGifDeprecated(@NonNull final Resources res,
             @NonNull final byte[] data) {
         final GifDecoder gifDecoder = new GifDecoder();
         final int status = gifDecoder.read(data);
@@ -175,7 +175,7 @@ public final class ImageFactory {
     }
 
     @Nullable
-    public static Drawable decodeAnimatedGif2(@NonNull final Resources res,
+    public static Drawable decodeAnimatedGif(@NonNull final Resources res,
             @NonNull final byte[] data) {
         final GifDecoder2 gifDecoder = new GifDecoder2();
         final int status = gifDecoder.read(data);
@@ -183,7 +183,7 @@ public final class ImageFactory {
             return null;
         }
         final Movie movie = Movie.decodeByteArray(data, 0, data.length);
-        if (movie == null) {
+        if (movie == null || movie.width() <= 0 || movie.height() <= 0) {
             return null;
         }
         return new GifDrawable2(res, gifDecoder, movie);
