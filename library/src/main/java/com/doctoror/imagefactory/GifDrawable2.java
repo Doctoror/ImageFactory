@@ -4,14 +4,10 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.Movie;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
-import android.graphics.drawable.Animatable;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
@@ -106,14 +102,14 @@ public class GifDrawable2 extends AnimationDrawable {
 
     @Override
     public void run() {
+        unscheduleSelf(this);
         if (!mAnimationEnded) {
             final long start = SystemClock.uptimeMillis();
             invalidateSelf();
-            mGifDecoder.advance();
             if (mGifDecoder.loopCount != 0 && mFramesDrawn >= mMaxFrames) {
                 mAnimationEnded = true;
-                unscheduleSelf(this);
             } else {
+                mGifDecoder.advance();
                 final int frameDelay = mGifDecoder.getDelay(mGifDecoder.framePointer);
                 final long now = SystemClock.uptimeMillis();
                 final long drawTime = SystemClock.uptimeMillis() - start;
