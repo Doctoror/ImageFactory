@@ -131,8 +131,6 @@ public class GifDrawable2 extends AnimationDrawable {
             mMovieTime -= mMovieDuration;
         }
 
-        //System.out.println("time is: " + (mMovieTime));
-
         mMovie.setTime(mMovieTime);
         mTmpBitmap.eraseColor(Color.TRANSPARENT);
         mMovie.draw(mTmpCanvas, 0, 0);
