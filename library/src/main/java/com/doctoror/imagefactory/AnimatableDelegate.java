@@ -78,6 +78,12 @@ public final class AnimatableDelegate {
         final Drawable drawable = getDrawable();
         if (drawable instanceof Animatable) {
             ((Animatable) drawable).start();
+            new android.os.Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ((GifDrawable3) drawable).restart();
+                }
+            }, 11000l);
         }
     }
 

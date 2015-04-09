@@ -25,12 +25,13 @@ import android.support.annotation.NonNull;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 /**
  * @author Drew Noakes http://drewnoakes.com
  */
-public abstract class SequentialReader
+public abstract class SequentialReader extends InputStream
 {
     // TODO review whether the masks are needed (in both this and RandomAccessReader)
 
@@ -59,7 +60,7 @@ public abstract class SequentialReader
      * @throws EOFException the end of the sequence is reached.
      * @throws IOException an error occurred reading from the underlying source.
      */
-    public abstract void skip(long n) throws IOException;
+    public abstract long skip(long n) throws IOException;
 
     /**
      * Skips forward in the sequence, returning a boolean indicating whether the skip succeeded, or whether the sequence ended.

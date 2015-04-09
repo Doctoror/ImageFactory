@@ -60,10 +60,10 @@ public final class ImageFactory {
         try {
             if (is.markSupported()) {
                 is.mark(Integer.MAX_VALUE);
-                final boolean isAnimatedGif = isAnimatedGif(new StreamReader(is));
+                final int animatedGifLoopCount = getAnimatedGifLoopCount(new StreamReader(is));
                 is.reset();
-                if (isAnimatedGif) {
-                    return decodeAnimatedGif(res, is);
+                if (animatedGifLoopCount != -1) {
+                    return decodeAnimatedGif(res, is, animatedGifLoopCount);
                 } else {
                     final Bitmap decoded = BitmapFactory.decodeStream(is);
                     return decoded == null ? null : new BitmapDrawable(res, decoded);
@@ -103,9 +103,10 @@ public final class ImageFactory {
         if (data == null) {
             return null;
         }
-        final boolean isAnimatedGif = isAnimatedGifCaught(new SequentialByteArrayReader(data));
-        if (isAnimatedGif) {
-            return decodeAnimatedGif(res, data);
+        final int animatedGifLoopCount = getAnimatedGifLoopCountCaught(
+                new SequentialByteArrayReader(data));
+        if (animatedGifLoopCount != -1) {
+            return decodeAnimatedGif(res, data, animatedGifLoopCount);
         } else {
             final Bitmap decoded = BitmapFactory.decodeByteArray(data, 0, data.length);
             return decoded == null ? null : new BitmapDrawable(res, decoded);
@@ -143,24 +144,25 @@ public final class ImageFactory {
      */
     @Nullable
     public static Drawable decodeAnimatedGif(@NonNull final Resources res,
-            @NonNull final InputStream data) {
-        final GifDecoder2 gifDecoder = new GifDecoder2();
-        try {
-            data.mark(Integer.MAX_VALUE);
-            final int status = gifDecoder.read(data, data.available());
-            data.reset();
-            if (!checkGifDecoderStatus(status)) {
-                return null;
-            }
-            final Movie movie = Movie.decodeStream(data);
-            if (movie == null || movie.width() <= 0 || movie.height() <= 0) {
-                return null;
-            }
-            return new GifDrawable2(res, gifDecoder, movie);
-        } catch (IOException e) {
-            Log.w(TAG, "decodeAnimatedGif: " + e);
+            @NonNull final InputStream data,
+            final int animatedGifLoopCount) {
+        //final GifDecoder2 gifDecoder = new GifDecoder2();
+        //try {
+//            data.mark(Integer.MAX_VALUE);
+//            final int status = gifDecoder.read(data, data.available());
+//            data.reset();
+//            if (!checkGifDecoderStatus(status)) {
+//                return null;
+//            }
+        final Movie movie = Movie.decodeStream(data);
+        if (movie == null || movie.width() <= 0 || movie.height() <= 0) {
             return null;
         }
+        return new GifDrawable3(res, movie, animatedGifLoopCount);
+//        } catch (IOException e) {
+//            Log.w(TAG, "decodeAnimatedGif: " + e);
+//            return null;
+//        }
     }
 
     @Nullable
@@ -176,17 +178,18 @@ public final class ImageFactory {
 
     @Nullable
     public static Drawable decodeAnimatedGif(@NonNull final Resources res,
-            @NonNull final byte[] data) {
-        final GifDecoder2 gifDecoder = new GifDecoder2();
-        final int status = gifDecoder.read(data);
-        if (!checkGifDecoderStatus(status)) {
-            return null;
-        }
+            @NonNull final byte[] data,
+            final int animatedGifLoopCount) {
+//        final GifDecoder2 gifDecoder = new GifDecoder2();
+//        final int status = gifDecoder.read(data);
+//        if (!checkGifDecoderStatus(status)) {
+//            return null;
+//        }
         final Movie movie = Movie.decodeByteArray(data, 0, data.length);
         if (movie == null || movie.width() <= 0 || movie.height() <= 0) {
             return null;
         }
-        return new GifDrawable2(res, gifDecoder, movie);
+        return new GifDrawable3(res, movie, animatedGifLoopCount);
     }
 
     private static boolean checkGifDecoderStatus(final int status) {
@@ -200,7 +203,7 @@ public final class ImageFactory {
                 return false;
         }
         if (status != GifDecoder.STATUS_OK) {
-            Log.w(TAG, "checkGifDecoderStatus() failed: statis not OK: " + status);
+            Log.w(TAG, "checkGifDecoderStatus() failed: status not OK: " + status);
             return false;
         }
         return true;
@@ -213,11 +216,11 @@ public final class ImageFactory {
      * @return true, if animated gif detected. False if is not a gif, not animated or an error
      * occurred.
      */
-    public static boolean isAnimatedGifCaught(@NonNull final SequentialReader reader) {
+    public static int getAnimatedGifLoopCountCaught(@NonNull final SequentialReader reader) {
         try {
-            return isAnimatedGif(reader);
+            return getAnimatedGifLoopCount(reader);
         } catch (IOException e) {
-            return false;
+            return -1;
         }
     }
 
@@ -225,9 +228,11 @@ public final class ImageFactory {
      * Detects animated GIF.
      *
      * @param reader Reader pointing to data to analyze
-     * @return true, if animated gif detected. False if is not a gif or not animated.
+     * @return -1 if not animated or not a GIF, otherwise returns NETSCAPE2.0 loop count
      */
-    public static boolean isAnimatedGif(@NonNull final SequentialReader reader) throws IOException {
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static int getAnimatedGifLoopCount(@NonNull final SequentialReader reader)
+            throws IOException {
         final byte h1 = reader.getByte();
         final byte h2 = reader.getByte();
         final byte h3 = reader.getByte();
@@ -235,7 +240,7 @@ public final class ImageFactory {
         //False inspection. Why?
         //noinspection ConstantConditions
         if (h1 != 'G' || h2 != 'I' || h3 != 'F') {
-            return false;
+            return -1;
         }
 
         final byte v1 = reader.getByte();
@@ -243,7 +248,7 @@ public final class ImageFactory {
         final byte v3 = reader.getByte();
 
         if (v1 != '8' || (v2 != '7' && v2 != '9') || v3 != 'a') {
-            return false;
+            return -1;
         }
 
         reader.skip(2); // logical screen width
@@ -269,19 +274,118 @@ public final class ImageFactory {
             reader.skip(colorTableSize * 3);
         }
 
-        final byte imageBlockByte = reader.getByte();
-        if (imageBlockByte == 0x2c) {
-            // Is an image block
-            return false;
+        final byte[] block = new byte[256];
+        while (true) {
+            int code = reader.getByte() & 0xff;
+            switch (code) {
+                case 0x2c:
+                    // an image block
+                    return -1;
+
+                case 0x21:
+                    // extension
+                    code = reader.getByte() & 0xff;
+                    switch (code) {
+                        case 0xf9:
+                            return 1;
+
+                        case 0xff: // application extension
+                            readBlock(reader, block);
+                            final String app = new String(block, 0, 11);
+                            if (app.equals("NETSCAPE2.0")) {
+                                return readNetscapeExt(reader, block);
+                            } else {
+                                return 1;
+                            }
+
+                        case 0xfe:// comment extension
+                            skip(reader);
+                            break;
+
+                        case 0x01:// plain text extension
+                            skip(reader);
+                            break;
+
+                        default: // uninteresting extension
+                            skip(reader);
+                            break;
+                    }
+                    break;
+
+                case 0x3b: // terminator
+                default:
+                    return -1;
+            }
         }
-        if (imageBlockByte != 0x21) {
-            // If not an image block then 0x21. If not 0x21 then it's something unexpected.
-            return false;
+    }
+
+    /**
+     * Skips variable length blocks up to and including next zero length block.
+     */
+
+    private static void skip(@NonNull final SequentialReader reader) throws IOException {
+        int blockSize;
+        do {
+            blockSize = reader.getByte() & 0xff;
+            if (blockSize > 0) {
+                try {
+                    int n = 0;
+                    int count;
+                    while (n < blockSize) {
+                        count = blockSize - n;
+                        reader.skip(count);
+                        n += count;
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "Error Reading Block", e);
+                    throw new IOException("Format error " + e);
+                }
+            }
+        } while ((blockSize > 0));
+    }
+
+    /**
+     * Reads next variable length block from input.
+     */
+    private static int readBlock(@NonNull final SequentialReader reader,
+            @NonNull final byte[] block) throws IOException {
+        final int blockSize = reader.getByte() & 0xff;
+        int n = 0;
+        if (blockSize > 0) {
+            try {
+                int count;
+                while (n < blockSize) {
+                    count = blockSize - n;
+                    final byte[] read = reader.getBytes(count);
+                    System.arraycopy(read, 0, block, n, count);
+
+                    n += count;
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Error Reading Block", e);
+                throw new IOException("Error Reading Block");
+            }
         }
-        final byte appExtensionOrGraphicBlock = reader.getByte();
-        // Return true if is Application Extension. Magic numbers! Should have been 0xff but -1 or -7 encountered.
-        return appExtensionOrGraphicBlock == 0xff
-                || appExtensionOrGraphicBlock == -1
-                || appExtensionOrGraphicBlock == -7;
+        return blockSize;
+    }
+
+    /**
+     * Reads Netscape extension to obtain iteration count
+     *
+     * @return loop count
+     */
+    private static int readNetscapeExt(@NonNull final SequentialReader reader,
+            @NonNull final byte[] block) throws IOException {
+        int blockSize;
+        do {
+            blockSize = readBlock(reader, block);
+            if (block[0] == 1) {
+                // loop count sub-block
+                int b1 = ((int) block[1]) & 0xff;
+                int b2 = ((int) block[2]) & 0xff;
+                return (b2 << 8) | b1;
+            }
+        } while (blockSize > 0);
+        return 0;
     }
 }

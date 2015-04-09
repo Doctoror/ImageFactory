@@ -46,6 +46,11 @@ public class StreamReader extends SequentialReader
     }
 
     @Override
+    public int read() throws IOException {
+        return getByte();
+    }
+
+    @Override
     public byte getByte() throws IOException
     {
         int value = _stream.read();
@@ -73,7 +78,7 @@ public class StreamReader extends SequentialReader
     }
 
     @Override
-    public void skip(long n) throws IOException
+    public long skip(long n) throws IOException
     {
         if (n < 0)
             throw new IllegalArgumentException("n must be zero or greater.");
@@ -84,6 +89,7 @@ public class StreamReader extends SequentialReader
             throw new EOFException(
                     String.format("Unable to skip. Requested %d bytes but skipped %d.", n,
                             skippedCount));
+        return n;
     }
 
     @Override

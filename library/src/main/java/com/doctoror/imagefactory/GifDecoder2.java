@@ -202,6 +202,16 @@ public final class GifDecoder2 {
 
     /**
      * Skips bitmap data
+     *
+     * TODO
+     */
+    protected void skipBitmapData2(final GifFrame frame) {
+        int data_size = read();
+
+    }
+
+    /**
+     * Skips bitmap data
      */
     protected void skipBitmapData(GifFrame frame) {
         if (frame != null) {

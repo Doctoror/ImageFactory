@@ -16,7 +16,6 @@
 
 package com.doctoror.imagefactory.sample;
 
-import com.doctoror.imagefactory.GifDecoder2;
 import com.doctoror.imagefactory.ImageFactory;
 
 import android.content.Context;
@@ -35,7 +34,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DemoActivity extends ActionBarActivity {
+public final class DemoActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,21 +50,21 @@ public class DemoActivity extends ActionBarActivity {
     private List<Drawable> generateImageInfo() {
         final String[] names = new String[]{
                 "Rotating_earth_(large).gif",
-                "Static_earth.gif",
-                "LoopOnce.gif",
-                "small.gif",
-                "smallest.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag.gif",
-                "ru9gag1.gif",
-                "ru9gag3.gif",
-                "ru9gag4.gif"
+//                "Static_earth.gif",
+                "LoopOnce.gif"
+//                "small.gif",
+//                "smallest.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag.gif",
+//                "ru9gag1.gif",
+//                "ru9gag3.gif",
+//                "ru9gag4.gif"
         };
         final List<Drawable> list = new ArrayList<>(names.length);
         for (final String name : names) {

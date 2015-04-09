@@ -10,28 +10,22 @@ import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.Locale;
 
 /**
  * {@link AnimationDrawable} that draws animated GIF from {@link GifDecoder2}
  */
-public class GifDrawable2 extends AnimationDrawable {
+public class GifDrawable3 extends AnimationDrawable {
 
     private static final String TAG = "GifDrawable2";
 
     private static final boolean LOG_I = false;
 
-    /**
-     * Minimum delay
-     */
     private static final int MIN_DELAY = 10;
-
-    private final GifDecoder2 mGifDecoder;
+    private static final int DELAY = 20;
 
     private final Movie mMovie;
-    private final int[] mFrameDelays;
 
     private final int mMovieDuration;
     private final int mMovieHeight;
@@ -40,30 +34,21 @@ public class GifDrawable2 extends AnimationDrawable {
     private final BitmapDrawable mTmpDrawable;
     private final Canvas mTmpCanvas;
 
-    private final int mMaxFrames;
-
-    private int mFramesDrawn;
+    private final int mLoopCount;
 
     private boolean mAnimationEnded;
+
+    private final int mMaxMovieTime;
 
     private int mMovieTime;
 
     private boolean mAdvanceOnDraw;
 
-    public GifDrawable2(@NonNull final Resources res, @NonNull final GifDecoder2 gifDecoder,
-            @NonNull final Movie movie) {
-        mGifDecoder = gifDecoder;
-        mMaxFrames = gifDecoder.loopCount * gifDecoder.frameCount;
+    public GifDrawable3(@NonNull final Resources res, @NonNull final Movie movie, final int loopCount) {
         mMovie = movie;
-        gifDecoder.advance();
-
-        int movieDuration = movie.duration();
-        if (movieDuration <= 0) {
-            for (int i = 0; i < gifDecoder.frameCount; i++) {
-                movieDuration += gifDecoder.getDelay(i);
-            }
-        }
-        mMovieDuration = movieDuration;
+        mLoopCount = loopCount;
+        mMovieDuration = movie.duration();
+        mMaxMovieTime = mMovieDuration * loopCount;
 
         //System.out.println("c duration: " + mMovieDuration);
         //System.out.println("m duration: " + movie.duration());
@@ -75,18 +60,7 @@ public class GifDrawable2 extends AnimationDrawable {
         mTmpDrawable = new BitmapDrawable(res, mTmpBitmap);
         mTmpCanvas = new Canvas(mTmpBitmap);
 
-        if (LOG_I) {
-            Log.i(TAG, "frameCount: " + gifDecoder.frameCount);
-        }
-        mFrameDelays = new int[gifDecoder.frameCount];
-        for (int i = 0; i < gifDecoder.frameCount; i++) {
-            mFrameDelays[i] = gifDecoder.getDelay(i);
-            if (LOG_I) {
-                Log.i(TAG, String.format(Locale.US, "delay[%d] = %d", i, gifDecoder.getDelay(i)));
-            }
-        }
-
-        addFrame(mTmpDrawable, mFrameDelays[0]);
+        addFrame(mTmpDrawable, DELAY);
     }
 
     @Override
@@ -106,7 +80,6 @@ public class GifDrawable2 extends AnimationDrawable {
         if (mAnimationEnded) {
             mAnimationEnded = false;
             mMovieTime = 0;
-            mFramesDrawn = 0;
             // Don't call start() here!
             System.out.println("restarted");
             run();
@@ -139,13 +112,13 @@ public class GifDrawable2 extends AnimationDrawable {
 
         boolean drew = false;
 
-        System.out.println("draw");
+        //System.out.println("draw");
         if (mAdvanceOnDraw && !mAnimationEnded) {
             mAdvanceOnDraw = false;
-            System.out.println("advancing");
+            //System.out.println("advancing");
             final long start = SystemClock.uptimeMillis();
 
-            if (mGifDecoder.loopCount != 0 && mFramesDrawn > mMaxFrames) {
+            if (mLoopCount != 0 && mMovieTime >= mMaxMovieTime) {
                 mAnimationEnded = true;
             } else {
                 if (mMovieTime > mMovieDuration) {
@@ -164,15 +137,13 @@ public class GifDrawable2 extends AnimationDrawable {
                 mMovie.draw(mTmpCanvas, 0, 0);
                 mTmpDrawable.draw(canvas);
                 drew = true;
-                System.out.println("Drew with time " + mMovieTime);
+                //System.out.println("Drew with time " + mMovieTime);
 
-                final int frameDelay = mFrameDelays[mFramesDrawn % mFrameDelays.length];
                 final long now = SystemClock.uptimeMillis();
                 final long drawTime = SystemClock.uptimeMillis() - start;
-                final long calculatedDelay = Math.max(MIN_DELAY, frameDelay - drawTime);
-                mMovieTime += frameDelay;
-                mFramesDrawn++;
-                System.out.println("Scheduled " + calculatedDelay);
+                final long calculatedDelay = Math.max(MIN_DELAY, DELAY - drawTime);
+                mMovieTime += DELAY;
+                //System.out.println("Scheduled " + calculatedDelay);
                 scheduleSelf(this, now + calculatedDelay);
             }
         }

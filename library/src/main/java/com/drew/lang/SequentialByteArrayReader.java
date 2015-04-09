@@ -47,6 +47,11 @@ public class SequentialByteArrayReader extends SequentialReader
     }
 
     @Override
+    public int read() throws IOException {
+        return getByte();
+    }
+
+    @Override
     public byte getByte() throws IOException
     {
         if (_index >= _bytes.length) {
@@ -71,7 +76,7 @@ public class SequentialByteArrayReader extends SequentialReader
     }
 
     @Override
-    public void skip(long n) throws IOException
+    public long skip(long n) throws IOException
     {
         if (n < 0) {
             throw new IllegalArgumentException("n must be zero or greater.");
@@ -82,6 +87,7 @@ public class SequentialByteArrayReader extends SequentialReader
         }
 
         _index += n;
+        return n;
     }
 
     @Override
