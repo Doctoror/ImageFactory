@@ -1,11 +1,10 @@
 ##Description
 
 ImageFactory is much like BitmapFactory but returns GifDrawable if decoded image is an animated GIF or BitmapDrawable if not.
-Has AnimatableImageView that handles Animatable background and image lifecycle and AnimatableDelegate to easily implement Animatable handling on any View.
 
-Work in progress. Has some bugs.
+Depends on [koral--/android-gif-drawable](https://github.com/koral--/android-gif-drawable)
 
-Min API level 7
+Min API level 8
 
 
 ##License
