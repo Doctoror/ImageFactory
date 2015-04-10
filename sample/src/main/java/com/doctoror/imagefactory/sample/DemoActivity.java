@@ -50,28 +50,28 @@ public final class DemoActivity extends ActionBarActivity {
     private List<Drawable> generateImageInfo() {
         final String[] names = new String[]{
                 "Rotating_earth_(large).gif",
-//                "Static_earth.gif",
-                "LoopOnce.gif"
-//                "small.gif",
-//                "smallest.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag1.gif",
-//                "ru9gag3.gif",
-//                "ru9gag4.gif"
+                "Static_earth.gif",
+                "LoopOnce.gif",
+                "small.gif",
+                "smallest.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag1.gif",
+                "ru9gag3.gif",
+                "ru9gag4.gif"
         };
         final List<Drawable> list = new ArrayList<>(names.length);
         for (final String name : names) {
             InputStream is = null;
             try {
                 is = getAssets().open(name);
-                final Drawable item = ImageFactory.decodeImage(getResources(), is);
+                final Drawable item = ImageFactory.decodeStream(getResources(), is);
                 if (item != null) {
                     list.add(item);
                 }

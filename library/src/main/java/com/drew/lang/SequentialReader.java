@@ -127,11 +127,11 @@ public abstract class SequentialReader extends InputStream
         if (_isMotorolaByteOrder) {
             // Motorola - MSB first
             return (getByte() << 8 & 0xFF00) |
-                   (getByte()      & 0xFF);
+                    (getByte()      & 0xFF);
         } else {
             // Intel ordering - LSB first
             return (getByte()      & 0xFF) |
-                   (getByte() << 8 & 0xFF00);
+                    (getByte() << 8 & 0xFF00);
         }
     }
 
@@ -146,11 +146,11 @@ public abstract class SequentialReader extends InputStream
         if (_isMotorolaByteOrder) {
             // Motorola - MSB first
             return (short) (((short)getByte() << 8 & (short)0xFF00) |
-                            ((short)getByte()      & (short)0xFF));
+                    ((short)getByte()      & (short)0xFF));
         } else {
             // Intel ordering - LSB first
             return (short) (((short)getByte()      & (short)0xFF) |
-                            ((short)getByte() << 8 & (short)0xFF00));
+                    ((short)getByte() << 8 & (short)0xFF00));
         }
     }
 
@@ -165,15 +165,15 @@ public abstract class SequentialReader extends InputStream
         if (_isMotorolaByteOrder) {
             // Motorola - MSB first (big endian)
             return (((long)getByte()) << 24 & 0xFF000000L) |
-                   (((long)getByte()) << 16 & 0xFF0000L) |
-                   (((long)getByte()) << 8  & 0xFF00L) |
-                   (((long)getByte())       & 0xFFL);
+                    (((long)getByte()) << 16 & 0xFF0000L) |
+                    (((long)getByte()) << 8  & 0xFF00L) |
+                    (((long)getByte())       & 0xFFL);
         } else {
             // Intel ordering - LSB first (little endian)
             return (((long)getByte())       & 0xFFL) |
-                   (((long)getByte()) << 8  & 0xFF00L) |
-                   (((long)getByte()) << 16 & 0xFF0000L) |
-                   (((long)getByte()) << 24 & 0xFF000000L);
+                    (((long)getByte()) << 8  & 0xFF00L) |
+                    (((long)getByte()) << 16 & 0xFF0000L) |
+                    (((long)getByte()) << 24 & 0xFF000000L);
         }
     }
 
@@ -188,15 +188,15 @@ public abstract class SequentialReader extends InputStream
         if (_isMotorolaByteOrder) {
             // Motorola - MSB first (big endian)
             return (getByte() << 24 & 0xFF000000) |
-                   (getByte() << 16 & 0xFF0000) |
-                   (getByte() << 8  & 0xFF00) |
-                   (getByte()       & 0xFF);
+                    (getByte() << 16 & 0xFF0000) |
+                    (getByte() << 8  & 0xFF00) |
+                    (getByte()       & 0xFF);
         } else {
             // Intel ordering - LSB first (little endian)
             return (getByte()       & 0xFF) |
-                   (getByte() << 8  & 0xFF00) |
-                   (getByte() << 16 & 0xFF0000) |
-                   (getByte() << 24 & 0xFF000000);
+                    (getByte() << 8  & 0xFF00) |
+                    (getByte() << 16 & 0xFF0000) |
+                    (getByte() << 24 & 0xFF000000);
         }
     }
 
@@ -211,23 +211,23 @@ public abstract class SequentialReader extends InputStream
         if (_isMotorolaByteOrder) {
             // Motorola - MSB first
             return ((long)getByte() << 56 & 0xFF00000000000000L) |
-                   ((long)getByte() << 48 & 0xFF000000000000L) |
-                   ((long)getByte() << 40 & 0xFF0000000000L) |
-                   ((long)getByte() << 32 & 0xFF00000000L) |
-                   ((long)getByte() << 24 & 0xFF000000L) |
-                   ((long)getByte() << 16 & 0xFF0000L) |
-                   ((long)getByte() << 8  & 0xFF00L) |
-                   ((long)getByte()       & 0xFFL);
+                    ((long)getByte() << 48 & 0xFF000000000000L) |
+                    ((long)getByte() << 40 & 0xFF0000000000L) |
+                    ((long)getByte() << 32 & 0xFF00000000L) |
+                    ((long)getByte() << 24 & 0xFF000000L) |
+                    ((long)getByte() << 16 & 0xFF0000L) |
+                    ((long)getByte() << 8  & 0xFF00L) |
+                    ((long)getByte()       & 0xFFL);
         } else {
             // Intel ordering - LSB first
             return ((long)getByte()       & 0xFFL) |
-                   ((long)getByte() << 8  & 0xFF00L) |
-                   ((long)getByte() << 16 & 0xFF0000L) |
-                   ((long)getByte() << 24 & 0xFF000000L) |
-                   ((long)getByte() << 32 & 0xFF00000000L) |
-                   ((long)getByte() << 40 & 0xFF0000000000L) |
-                   ((long)getByte() << 48 & 0xFF000000000000L) |
-                   ((long)getByte() << 56 & 0xFF00000000000000L);
+                    ((long)getByte() << 8  & 0xFF00L) |
+                    ((long)getByte() << 16 & 0xFF0000L) |
+                    ((long)getByte() << 24 & 0xFF000000L) |
+                    ((long)getByte() << 32 & 0xFF00000000L) |
+                    ((long)getByte() << 40 & 0xFF0000000000L) |
+                    ((long)getByte() << 48 & 0xFF000000000000L) |
+                    ((long)getByte() << 56 & 0xFF00000000000000L);
         }
     }
 
@@ -235,16 +235,16 @@ public abstract class SequentialReader extends InputStream
     {
         if (_isMotorolaByteOrder) {
             float res = (getByte() & 0xFF) << 8 |
-                        (getByte() & 0xFF);
+                    (getByte() & 0xFF);
             int d =     (getByte() & 0xFF) << 8 |
-                        (getByte() & 0xFF);
+                    (getByte() & 0xFF);
             return (float)(res + d/65536.0);
         } else {
             // this particular branch is untested
             int d =     (getByte() & 0xFF) |
-                        (getByte() & 0xFF) << 8;
+                    (getByte() & 0xFF) << 8;
             float res = (getByte() & 0xFF) |
-                        (getByte() & 0xFF) << 8;
+                    (getByte() & 0xFF) << 8;
             return (float)(res + d/65536.0);
         }
     }
