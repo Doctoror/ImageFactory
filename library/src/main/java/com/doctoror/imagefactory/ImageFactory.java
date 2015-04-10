@@ -426,15 +426,15 @@ public final class ImageFactory {
     /**
      * Detects animated GIF.
      *
-     * @param reader Reader pointing to data to analyze
+     * @param is InputStream pointing to data to analyze
      * @return true, if the reader's content is an animated gif. False if not a gif or not animated
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static boolean isAnimatedGif(@NonNull final BufferedInputStream reader)
+    public static boolean isAnimatedGif(@NonNull final BufferedInputStream is)
             throws IOException {
-        final byte h1 = (byte) reader.read();
-        final byte h2 = (byte) reader.read();
-        final byte h3 = (byte) reader.read();
+        final byte h1 = (byte) is.read();
+        final byte h2 = (byte) is.read();
+        final byte h3 = (byte) is.read();
 
         //False inspection. Why?
         //noinspection ConstantConditions
@@ -442,19 +442,19 @@ public final class ImageFactory {
             return false;
         }
 
-        final byte v1 = (byte) reader.read();
-        final byte v2 = (byte) reader.read();
-        final byte v3 = (byte) reader.read();
+        final byte v1 = (byte) is.read();
+        final byte v2 = (byte) is.read();
+        final byte v3 = (byte) is.read();
 
         if (v1 != '8' || (v2 != '7' && v2 != '9') || v3 != 'a') {
             return false;
         }
 
-        reader.skip(2); // logical screen width
-        reader.skip(2); // logical screen height
+        is.skip(2); // logical screen width
+        is.skip(2); // logical screen height
 
         // read as unsigned int 8
-        final short flags = (short) (reader.read() & 0xFF);
+        final short flags = (short) (is.read() & 0xFF);
 
         // First three bits = (BPP - 1)
         final int colorTableSize = 1 << ((flags & 7) + 1);
@@ -467,15 +467,15 @@ public final class ImageFactory {
         //final int bitsPerPixel = ((flags & 0x70) >> 4) + 1;
         final boolean hasGlobalColorTable = (flags & 0xf) != 0;
 
-        reader.skip(1); // background color index
-        reader.skip(1); // aspect ratio byte
+        is.skip(1); // background color index
+        is.skip(1); // aspect ratio byte
 
         if (hasGlobalColorTable) {
-            reader.skip(colorTableSize * 3);
+            is.skip(colorTableSize * 3);
         }
 
         while (true) {
-            int code = reader.read() & 0xff;
+            int code = is.read() & 0xff;
             switch (code) {
                 case 0x2c:
                     // an image block
@@ -483,7 +483,7 @@ public final class ImageFactory {
 
                 case 0x21:
                     // extension
-                    code = reader.read() & 0xff;
+                    code = is.read() & 0xff;
                     switch (code) {
                         case 0xf9:
                             return true;
@@ -492,15 +492,15 @@ public final class ImageFactory {
                             return true;
 
                         case 0xfe:// comment extension
-                            skip(reader);
+                            skip(is);
                             break;
 
                         case 0x01:// plain text extension
-                            skip(reader);
+                            skip(is);
                             break;
 
                         default: // uninteresting extension
-                            skip(reader);
+                            skip(is);
                             break;
                     }
                     break;
