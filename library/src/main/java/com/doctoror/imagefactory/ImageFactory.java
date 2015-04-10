@@ -41,6 +41,7 @@ import pl.droidsonroids.gif.GifDrawable;
  * Used for decoding regular images or animated GIF into a {@link Drawable}
  * The interface is much like {@link BitmapFactory}.
  */
+@SuppressWarnings("UnusedDeclaration")
 public final class ImageFactory {
 
     private ImageFactory() {
