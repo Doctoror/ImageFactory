@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -72,6 +73,7 @@ public final class DemoActivity extends ActionBarActivity {
             try {
                 is = getAssets().open(name);
                 final Drawable item = ImageFactory.decodeStream(getResources(), is);
+                //final Drawable item = ImageFactory.decodeByteArray(getResources(), asByteArray(is));
                 if (item != null) {
                     list.add(item);
                 }
@@ -88,6 +90,16 @@ public final class DemoActivity extends ActionBarActivity {
             }
         }
         return list;
+    }
+
+    private byte[] asByteArray(InputStream is) throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(is.available() > 0 ? is.available() : 10240);
+        final byte[] buffer = new byte[10240];
+        int read;
+        while ((read = is.read(buffer)) != -1) {
+            baos.write(buffer, 0, read);
+        }
+        return baos.toByteArray();
     }
 
 //    private void testImageInfo() {

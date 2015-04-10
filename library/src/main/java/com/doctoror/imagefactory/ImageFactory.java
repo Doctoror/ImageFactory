@@ -16,10 +16,6 @@
 
 package com.doctoror.imagefactory;
 
-import com.drew.lang.SequentialByteArrayReader;
-import com.drew.lang.SequentialReader;
-import com.drew.lang.StreamReader;
-
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -33,6 +29,7 @@ import android.support.annotation.RawRes;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -80,7 +77,6 @@ public final class ImageFactory {
      * @param res     Resources to use if creating a BitmapDrawable
      * @param data    byte array of compressed image data
      * @param options optional options if an image will be decoded to a Bitmap
-     *
      * @return decoded {@link Drawable} or null on error
      * @throws NullPointerException if the data byte array is null
      */
@@ -106,9 +102,8 @@ public final class ImageFactory {
      * @param res     Resources to use if creating a BitmapDrawable
      * @param data    byte array of compressed image data
      * @param options optional options if an image will be decoded to a Bitmap
-     *
      * @return decoded {@link Drawable}
-     * @throws IOException on error
+     * @throws IOException          on error
      * @throws NullPointerException if the data byte array is null
      */
     @NonNull
@@ -118,7 +113,8 @@ public final class ImageFactory {
         if (data == null) {
             throw new NullPointerException("data byte array must not be null");
         }
-        final boolean animated = isAnimatedGif(new SequentialByteArrayReader(data));
+        final boolean animated = isAnimatedGif(
+                new BufferedInputStream(new ByteArrayInputStream(data)));
         if (animated) {
             return new GifDrawable(data);
         } else {
@@ -139,7 +135,6 @@ public final class ImageFactory {
      *
      * @param res Resources to use if creating a BitmapDrawable
      * @param is  The input stream that holds the raw data to be decoded into a Drawable
-     *
      * @return decoded {@link Drawable} or null on error
      * @throws NullPointerException if the InputStream is null
      */
@@ -159,7 +154,6 @@ public final class ImageFactory {
      * @param is         The input stream that holds the raw data to be decoded into a drawable
      * @param outPadding optional outPadding if an image will be decoded to a Bitmap
      * @param options    optional options if an image will be decoded to a Bitmap
-     *
      * @return decoded {@link Drawable} or null on error
      * @throws NullPointerException if the InputStream is null
      */
@@ -186,9 +180,8 @@ public final class ImageFactory {
      * @param is         The input stream that holds the raw data to be decoded into a drawable
      * @param outPadding optional outPadding if an image will be decoded to a Bitmap
      * @param options    optional options if an image will be decoded to a Bitmap
-     *
      * @return decoded {@link Drawable}
-     * @throws IOException on error
+     * @throws IOException          on error
      * @throws NullPointerException if the InputStream is null
      */
     @NonNull
@@ -208,7 +201,7 @@ public final class ImageFactory {
             bis = new BufferedInputStream(is);
         }
         bis.mark(Integer.MAX_VALUE);
-        final boolean animated = isAnimatedGif(new StreamReader(bis));
+        final boolean animated = isAnimatedGif(bis);
         bis.reset();
         if (animated) {
             return new GifDrawable(bis);
@@ -228,11 +221,10 @@ public final class ImageFactory {
      * can decode.
      * Returns null on error.
      *
-     * @param res        Resources to use if creating a BitmapDrawable
-     * @param filePath   complete path for the file to be decoded.
-     *
+     * @param res      Resources to use if creating a BitmapDrawable
+     * @param filePath complete path for the file to be decoded.
      * @return decoded {@link Drawable} or null on error
-     * @throws NullPointerException if the file path is null
+     * @throws NullPointerException     if the file path is null
      * @throws IllegalArgumentException if the file path is empty
      */
     @Nullable
@@ -247,12 +239,11 @@ public final class ImageFactory {
      * can decode.
      * Returns null on error.
      *
-     * @param res        Resources to use if creating a BitmapDrawable
-     * @param filePath   complete path for the file to be decoded.
-     * @param options    optional options if an image will be decoded to a Bitmap
-     *
+     * @param res      Resources to use if creating a BitmapDrawable
+     * @param filePath complete path for the file to be decoded.
+     * @param options  optional options if an image will be decoded to a Bitmap
      * @return decoded {@link Drawable} or null on error
-     * @throws NullPointerException if the file path is null
+     * @throws NullPointerException     if the file path is null
      * @throws IllegalArgumentException if the file path is empty
      */
     @Nullable
@@ -273,13 +264,12 @@ public final class ImageFactory {
      * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
      * can decode.
      *
-     * @param res        Resources to use if creating a BitmapDrawable
-     * @param filePath   complete path for the file to be decoded.
-     * @param options    optional options if an image will be decoded to a Bitmap
-     *
+     * @param res      Resources to use if creating a BitmapDrawable
+     * @param filePath complete path for the file to be decoded.
+     * @param options  optional options if an image will be decoded to a Bitmap
      * @return decoded {@link Drawable}
-     * @throws IOException on error
-     * @throws NullPointerException if the file path is null
+     * @throws IOException              on error
+     * @throws NullPointerException     if the file path is null
      * @throws IllegalArgumentException if the file path is empty
      */
     @NonNull
@@ -304,7 +294,6 @@ public final class ImageFactory {
      *
      * @param res Resources to use if creating a BitmapDrawable
      * @param fd  The file descriptor containing the data to decode
-     *
      * @return decoded {@link Drawable} or null on error
      * @throws NullPointerException if FileDescriptor is null
      */
@@ -325,7 +314,6 @@ public final class ImageFactory {
      * @param fd         The file descriptor containing the data to decode
      * @param outPadding optional outPadding if an image will be decoded as Bitmap
      * @param options    optional options if an image will be decoded to a Bitmap
-     *
      * @return decoded {@link Drawable} or null on error
      * @throws NullPointerException if FileDescriptor is null
      */
@@ -352,9 +340,8 @@ public final class ImageFactory {
      * @param fd         The file descriptor containing the data to decode
      * @param outPadding optional outPadding if an image will be decoded as Bitmap
      * @param options    optional options if an image will be decoded to a Bitmap
-     *
      * @return decoded {@link Drawable}
-     * @throws IOException on error
+     * @throws IOException          on error
      * @throws NullPointerException if FileDescriptor is null
      */
     @NonNull
@@ -375,11 +362,10 @@ public final class ImageFactory {
      * can decode.
      * Returns null on error.
      *
-     * @param res        The resources object containing the image data
-     * @param id         The resource id of the image data
-     *
+     * @param res The resources object containing the image data
+     * @param id  The resource id of the image data
      * @return decoded {@link Drawable} or null on error
-     * @throws NullPointerException if Resources is null
+     * @throws NullPointerException        if Resources is null
      * @throws Resources.NotFoundException if resource under the given id does not exist
      */
     @Nullable
@@ -394,12 +380,11 @@ public final class ImageFactory {
      * can decode.
      * Returns null on error.
      *
-     * @param res        The resources object containing the image data
-     * @param id         The resource id of the image data
-     * @param options    optional options if an image will be decoded to a Bitmap
-     *
+     * @param res     The resources object containing the image data
+     * @param id      The resource id of the image data
+     * @param options optional options if an image will be decoded to a Bitmap
      * @return decoded {@link Drawable} or null on error
-     * @throws NullPointerException if Resources is null
+     * @throws NullPointerException        if Resources is null
      * @throws Resources.NotFoundException if resource under the given id does not exist
      */
     @Nullable
@@ -419,13 +404,12 @@ public final class ImageFactory {
      * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
      * can decode.
      *
-     * @param res        The resources object containing the image data
-     * @param id         The resource id of the image data
-     * @param options    optional options if an image will be decoded to a Bitmap
-     *
+     * @param res     The resources object containing the image data
+     * @param id      The resource id of the image data
+     * @param options optional options if an image will be decoded to a Bitmap
      * @return decoded {@link Drawable}
-     * @throws IOException on error
-     * @throws NullPointerException if Resources is null
+     * @throws IOException                 on error
+     * @throws NullPointerException        if Resources is null
      * @throws Resources.NotFoundException if resource under the given id does not exist
      */
     @NonNull
@@ -436,19 +420,6 @@ public final class ImageFactory {
             throw new NullPointerException("Resources must not be null");
         }
         return decodeStreamOrThrow(res, res.openRawResource(id), null, options);
-//        final AssetFileDescriptor descriptor = res.openRawResourceFd(id);
-//        final InputStream is = descriptor.createInputStream();
-//        final boolean isAnimated;
-//        try {
-//            isAnimated = isAnimatedGif(new StreamReader(is));
-//        } finally {
-//            is.close();
-//        }
-//        if (isAnimated) {
-//            return new GifDrawable(descriptor);
-//        } else {
-//            final Bitmap decoded = BitmapFactory.decodeResource(res, id, options);
-//        }
     }
 
     /**
@@ -458,11 +429,11 @@ public final class ImageFactory {
      * @return true, if the reader's content is an animated gif. False if not a gif or not animated
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static boolean isAnimatedGif(@NonNull final SequentialReader reader)
+    public static boolean isAnimatedGif(@NonNull final BufferedInputStream reader)
             throws IOException {
-        final byte h1 = reader.getByte();
-        final byte h2 = reader.getByte();
-        final byte h3 = reader.getByte();
+        final byte h1 = (byte) reader.read();
+        final byte h2 = (byte) reader.read();
+        final byte h3 = (byte) reader.read();
 
         //False inspection. Why?
         //noinspection ConstantConditions
@@ -470,9 +441,9 @@ public final class ImageFactory {
             return false;
         }
 
-        final byte v1 = reader.getByte();
-        final byte v2 = reader.getByte();
-        final byte v3 = reader.getByte();
+        final byte v1 = (byte) reader.read();
+        final byte v2 = (byte) reader.read();
+        final byte v3 = (byte) reader.read();
 
         if (v1 != '8' || (v2 != '7' && v2 != '9') || v3 != 'a') {
             return false;
@@ -481,7 +452,8 @@ public final class ImageFactory {
         reader.skip(2); // logical screen width
         reader.skip(2); // logical screen height
 
-        final short flags = reader.getUInt8();
+        // read as unsigned int 8
+        final short flags = (short) (reader.read() & 0xFF);
 
         // First three bits = (BPP - 1)
         final int colorTableSize = 1 << ((flags & 7) + 1);
@@ -502,7 +474,7 @@ public final class ImageFactory {
         }
 
         while (true) {
-            int code = reader.getByte() & 0xff;
+            int code = reader.read() & 0xff;
             switch (code) {
                 case 0x2c:
                     // an image block
@@ -510,7 +482,7 @@ public final class ImageFactory {
 
                 case 0x21:
                     // extension
-                    code = reader.getByte() & 0xff;
+                    code = reader.read() & 0xff;
                     switch (code) {
                         case 0xf9:
                             return true;
@@ -543,18 +515,17 @@ public final class ImageFactory {
      * Skips variable length blocks up to and including next zero length block.
      */
 
-    private static void skip(@NonNull final SequentialReader reader) throws IOException {
+    private static void skip(@NonNull final BufferedInputStream reader) throws IOException {
         int blockSize;
         do {
-            blockSize = reader.getByte() & 0xff;
+            blockSize = reader.read() & 0xff;
             if (blockSize > 0) {
                 try {
                     int n = 0;
                     int count;
                     while (n < blockSize) {
                         count = blockSize - n;
-                        reader.skip(count);
-                        n += count;
+                        n += reader.skip(count);
                     }
                 } catch (Exception e) {
                     Log.w(TAG, "Error Reading Block", e);
