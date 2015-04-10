@@ -16,176 +16,425 @@
 
 package com.doctoror.imagefactory;
 
-import com.drew.lang.SequentialByteArrayReader;
-import com.drew.lang.SequentialReader;
-import com.drew.lang.StreamReader;
-
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.AnimationDrawable;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RawRes;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import pl.droidsonroids.gif.GifDrawable;
+
 /**
- * Used for decoding regular images or animated GIF
+ * Used for decoding regular images or animated GIF into a {@link Drawable}
+ * The interface is much like {@link BitmapFactory}.
  */
+@SuppressWarnings("UnusedDeclaration")
 public final class ImageFactory {
 
     private ImageFactory() {
-
+        // Private constructor, do not instantiate
     }
 
     private static final String TAG = "ImageFactory";
 
     /**
-     * Decodes image from InputStream.
+     * Decodes image from byte array.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
      * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
-     * can
-     * decode.
-     * Returns {@link AnimationDrawable} if the image is an animated GIF.
+     * can decode.
      * Returns null on error.
+     *
+     * @param res  Resources to use if creating a BitmapDrawable
+     * @param data byte array of compressed image data
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException if the data byte array is null
      */
     @Nullable
-    public static Drawable decodeImage(@NonNull final Resources res,
-            @NonNull final InputStream is) {
-        try {
-            if (is.markSupported()) {
-                is.mark(-1);
-                final boolean isAnimatedGif = isAnimatedGif(new StreamReader(is));
-                is.reset();
-                if (isAnimatedGif) {
-                    return decodeAnimatedGif(res, is);
-                } else {
-                    final Bitmap decoded = BitmapFactory.decodeStream(is);
-                    return decoded == null ? null : new BitmapDrawable(res, decoded);
-                }
-            } else {
-                // Mark not supported, read everything to bytes and then proceed
-                final int available = is.available();
-                ByteArrayOutputStream os = new ByteArrayOutputStream(
-                        available > 0 ? available : 4096);
-                final byte[] buffer = new byte[4096];
-                int read;
-                while ((read = is.read(buffer, 0, buffer.length)) != -1) {
-                    os.write(buffer, 0, read);
-                }
-                final byte[] data = os.toByteArray();
-                // Free-up ByteArrayOutputStream data clone
-                //noinspection UnusedAssignment
-                os = null;
-                return decodeImage(res, data);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static Drawable decodeByteArray(@NonNull final Resources res,
+            final byte[] data) {
+        return decodeByteArray(res, data, null);
     }
 
     /**
      * Decodes image from byte array.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
      * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
-     * can
-     * decode.
-     * Returns {@link AnimationDrawable} if the image is an animated GIF.
+     * can decode.
      * Returns null on error.
+     *
+     * @param res     Resources to use if creating a BitmapDrawable
+     * @param data    byte array of compressed image data
+     * @param options optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException if the data byte array is null
      */
     @Nullable
-    public static Drawable decodeImage(@NonNull final Resources res, @Nullable final byte[] data) {
+    public static Drawable decodeByteArray(@Nullable final Resources res,
+            final byte[] data,
+            @Nullable final BitmapFactory.Options options) {
+        try {
+            return decodeByteArrayOrThrow(res, data, options);
+        } catch (IOException e) {
+            Log.w(TAG, "decodeByteArray() " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Decodes image from byte array.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res     Resources to use if creating a BitmapDrawable
+     * @param data    byte array of compressed image data
+     * @param options optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable}
+     * @throws IOException          on error
+     * @throws NullPointerException if the data byte array is null
+     */
+    @NonNull
+    public static Drawable decodeByteArrayOrThrow(@Nullable final Resources res,
+            final byte[] data,
+            @Nullable final BitmapFactory.Options options) throws IOException {
         if (data == null) {
-            return null;
+            throw new NullPointerException("data byte array must not be null");
         }
-        final boolean isAnimatedGif = isAnimatedGifCaught(new SequentialByteArrayReader(data));
-        if (isAnimatedGif) {
-            return decodeAnimatedGif(res, data);
+        final boolean animated = isAnimatedGif(
+                new BufferedInputStream(new ByteArrayInputStream(data)));
+        if (animated) {
+            return new GifDrawable(data);
         } else {
-            final Bitmap decoded = BitmapFactory.decodeByteArray(data, 0, data.length);
-            return decoded == null ? null : new BitmapDrawable(res, decoded);
-        }
-    }
-
-    /**
-     * Returns decoded {@link GifDrawable}. Returns null on error.
-     *
-     * @param res  Resources
-     * @param data InputStream for image
-     * @return decoded {@link GifDrawable} or null on error
-     */
-    @Nullable
-    private static Drawable decodeAnimatedGif(@NonNull final Resources res,
-            @NonNull final InputStream data) {
-        final GifDecoder gifDecoder = new GifDecoder();
-        try {
-            final int status = gifDecoder.read(data, data.available());
-            if (!checkGifDecoderStatus(status)) {
-                return null;
+            final Bitmap decoded = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+            if (decoded == null) {
+                throw new IOException("BitmapFactory returned null");
             }
-        } catch (IOException e) {
-            return null;
+            return new BitmapDrawable(res, decoded);
         }
-        return new GifDrawable(res, gifDecoder);
     }
 
+    /**
+     * Decodes image from InputStream.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res Resources to use if creating a BitmapDrawable
+     * @param is  The input stream that holds the raw data to be decoded into a Drawable
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException if the InputStream is null
+     */
     @Nullable
-    private static Drawable decodeAnimatedGif(@NonNull final Resources res,
-            @NonNull final byte[] data) {
-        final GifDecoder gifDecoder = new GifDecoder();
-        final int status = gifDecoder.read(data);
-        if (!checkGifDecoderStatus(status)) {
+    public static Drawable decodeStream(@Nullable final Resources res, final InputStream is) {
+        return decodeStream(res, is, null, null);
+    }
+
+    /**
+     * Decodes image from InputStream.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res        Resources to use if creating a BitmapDrawable
+     * @param is         The input stream that holds the raw data to be decoded into a drawable
+     * @param outPadding optional outPadding if an image will be decoded to a Bitmap
+     * @param options    optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException if the InputStream is null
+     */
+    @Nullable
+    public static Drawable decodeStream(@Nullable final Resources res,
+            final InputStream is,
+            @Nullable final Rect outPadding,
+            @Nullable final BitmapFactory.Options options) {
+        try {
+            return decodeStreamOrThrow(res, is, outPadding, options);
+        } catch (IOException e) {
+            Log.w(TAG, "decodeStream: " + e);
             return null;
         }
-        return new GifDrawable(res, gifDecoder);
-    }
-
-    private static boolean checkGifDecoderStatus(final int status) {
-        switch (status) {
-            case GifDecoder.STATUS_OPEN_ERROR:
-                Log.w(TAG, "checkGifDecoderStatus() failed: STATUS_OPEN_ERROR");
-                return false;
-
-            case GifDecoder.STATUS_FORMAT_ERROR:
-                Log.w(TAG, "checkGifDecoderStatus() failed: STATUS_FORMAT_ERROR");
-                return false;
-        }
-        if (status != GifDecoder.STATUS_OK) {
-            Log.w(TAG, "checkGifDecoderStatus() failed: statis not OK: " + status);
-            return false;
-        }
-        return true;
     }
 
     /**
-     * Detects animated GIF.
+     * Decodes image from InputStream.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
      *
-     * @param reader Reader pointing to data to analyze
-     * @return true, if animated gif detected. False if is not a gif, not animated or an error
-     * occurred.
+     * @param res        Resources to use if creating a BitmapDrawable
+     * @param is         The input stream that holds the raw data to be decoded into a drawable
+     * @param outPadding optional outPadding if an image will be decoded to a Bitmap
+     * @param options    optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable}
+     * @throws IOException          on error
+     * @throws NullPointerException if the InputStream is null
      */
-    public static boolean isAnimatedGifCaught(@NonNull final SequentialReader reader) {
+    @NonNull
+    public static Drawable decodeStreamOrThrow(@Nullable final Resources res,
+            final InputStream is,
+            @Nullable final Rect outPadding,
+            @Nullable final BitmapFactory.Options options) throws IOException {
+        if (is == null) {
+            throw new NullPointerException("InputStream must not be null");
+        }
+
+        // android-gif-drawable gives libc crash or not decoding properly if it's not a BufferedInputStream.
+        final BufferedInputStream bis;
+        if (is instanceof BufferedInputStream) {
+            bis = (BufferedInputStream) is;
+        } else {
+            bis = new BufferedInputStream(is);
+        }
+        bis.mark(Integer.MAX_VALUE);
+        final boolean animated = isAnimatedGif(bis);
+        bis.reset();
+        if (animated) {
+            return new GifDrawable(bis);
+        } else {
+            final Bitmap decoded = BitmapFactory.decodeStream(is, outPadding, options);
+            if (decoded == null) {
+                throw new IOException("BitmapFactory returned null");
+            }
+            return new BitmapDrawable(res, decoded);
+        }
+    }
+
+    /**
+     * Decodes image from file path.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res      Resources to use if creating a BitmapDrawable
+     * @param filePath complete path for the file to be decoded.
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException     if the file path is null
+     * @throws IllegalArgumentException if the file path is empty
+     */
+    @Nullable
+    public static Drawable decodeFile(@Nullable final Resources res, final String filePath) {
+        return decodeFile(res, filePath, null);
+    }
+
+    /**
+     * Decodes image from file path.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res      Resources to use if creating a BitmapDrawable
+     * @param filePath complete path for the file to be decoded.
+     * @param options  optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException     if the file path is null
+     * @throws IllegalArgumentException if the file path is empty
+     */
+    @Nullable
+    public static Drawable decodeFile(@Nullable final Resources res,
+            final String filePath,
+            @Nullable final BitmapFactory.Options options) {
         try {
-            return isAnimatedGif(reader);
+            return decodeFileOrThrow(res, filePath, options);
         } catch (IOException e) {
-            return false;
+            Log.w(TAG, "decodeFile: " + e);
+            return null;
         }
+    }
+
+    /**
+     * Decodes image from file path.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     *
+     * @param res      Resources to use if creating a BitmapDrawable
+     * @param filePath complete path for the file to be decoded.
+     * @param options  optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable}
+     * @throws IOException              on error
+     * @throws NullPointerException     if the file path is null
+     * @throws IllegalArgumentException if the file path is empty
+     */
+    @NonNull
+    public static Drawable decodeFileOrThrow(@Nullable final Resources res,
+            final String filePath,
+            @Nullable final BitmapFactory.Options options) throws IOException {
+        if (filePath == null) {
+            throw new NullPointerException("filePath must not be null");
+        }
+        if (filePath.isEmpty()) {
+            throw new IllegalArgumentException("filePath must not be empty");
+        }
+        return decodeStreamOrThrow(res, new FileInputStream(filePath), null, options);
+    }
+
+    /**
+     * Decodes image from FileDescriptor.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res Resources to use if creating a BitmapDrawable
+     * @param fd  The file descriptor containing the data to decode
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException if FileDescriptor is null
+     */
+    @Nullable
+    public static Drawable decodeFileDescriptor(@Nullable final Resources res,
+            final FileDescriptor fd) {
+        return decodeFileDescriptor(res, fd, null, null);
+    }
+
+    /**
+     * Decodes image from FileDescriptor.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res        Resources to use if creating a BitmapDrawable
+     * @param fd         The file descriptor containing the data to decode
+     * @param outPadding optional outPadding if an image will be decoded as Bitmap
+     * @param options    optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException if FileDescriptor is null
+     */
+    @Nullable
+    public static Drawable decodeFileDescriptor(@Nullable final Resources res,
+            final FileDescriptor fd,
+            @Nullable final Rect outPadding,
+            @Nullable final BitmapFactory.Options options) {
+        try {
+            return decodeFileDescriptorOrThrow(res, fd, outPadding, options);
+        } catch (IOException e) {
+            Log.w(TAG, "decodeFileDescriptor() " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Decodes image from FileDescriptor.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     *
+     * @param res        Resources to use if creating a BitmapDrawable
+     * @param fd         The file descriptor containing the data to decode
+     * @param outPadding optional outPadding if an image will be decoded as Bitmap
+     * @param options    optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable}
+     * @throws IOException          on error
+     * @throws NullPointerException if FileDescriptor is null
+     */
+    @NonNull
+    public static Drawable decodeFileDescriptorOrThrow(@Nullable final Resources res,
+            final FileDescriptor fd,
+            @Nullable final Rect outPadding,
+            @Nullable final BitmapFactory.Options options) throws IOException {
+        if (fd == null) {
+            throw new NullPointerException("FileDescriptor must not be null");
+        }
+        return decodeStreamOrThrow(res, new FileInputStream(fd), outPadding, options);
+    }
+
+    /**
+     * Decodes image from resource.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res The resources object containing the image data
+     * @param id  The resource id of the image data
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException        if Resources is null
+     * @throws Resources.NotFoundException if resource under the given id does not exist
+     */
+    @Nullable
+    public static Drawable decodeResource(final Resources res, @DrawableRes @RawRes final int id) {
+        return decodeResource(res, id, null);
+    }
+
+    /**
+     * Decodes image from resource.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     * Returns null on error.
+     *
+     * @param res     The resources object containing the image data
+     * @param id      The resource id of the image data
+     * @param options optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable} or null on error
+     * @throws NullPointerException        if Resources is null
+     * @throws Resources.NotFoundException if resource under the given id does not exist
+     */
+    @Nullable
+    public static Drawable decodeResource(final Resources res, @DrawableRes @RawRes final int id,
+            @Nullable final BitmapFactory.Options options) {
+        try {
+            return decodeResourceOrThrow(res, id, options);
+        } catch (IOException e) {
+            Log.w(TAG, "decodeResource(): " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Decodes image from resource.
+     * Returns {@link GifDrawable} if the image is an animated GIF.
+     * Returns {@link BitmapDrawable} if the image is s valid static image {@link BitmapFactory}
+     * can decode.
+     *
+     * @param res     The resources object containing the image data
+     * @param id      The resource id of the image data
+     * @param options optional options if an image will be decoded to a Bitmap
+     * @return decoded {@link Drawable}
+     * @throws IOException                 on error
+     * @throws NullPointerException        if Resources is null
+     * @throws Resources.NotFoundException if resource under the given id does not exist
+     */
+    @NonNull
+    public static Drawable decodeResourceOrThrow(final Resources res,
+            @DrawableRes @RawRes final int id,
+            @Nullable final BitmapFactory.Options options) throws IOException {
+        if (res == null) {
+            throw new NullPointerException("Resources must not be null");
+        }
+        return decodeStreamOrThrow(res, res.openRawResource(id), null, options);
     }
 
     /**
      * Detects animated GIF.
      *
      * @param reader Reader pointing to data to analyze
-     * @return true, if animated gif detected. False if is not a gif or not animated.
+     * @return true, if the reader's content is an animated gif. False if not a gif or not animated
      */
-    public static boolean isAnimatedGif(@NonNull final SequentialReader reader) throws IOException {
-        final byte h1 = reader.getByte();
-        final byte h2 = reader.getByte();
-        final byte h3 = reader.getByte();
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static boolean isAnimatedGif(@NonNull final BufferedInputStream reader)
+            throws IOException {
+        final byte h1 = (byte) reader.read();
+        final byte h2 = (byte) reader.read();
+        final byte h3 = (byte) reader.read();
 
         //False inspection. Why?
         //noinspection ConstantConditions
@@ -193,9 +442,9 @@ public final class ImageFactory {
             return false;
         }
 
-        final byte v1 = reader.getByte();
-        final byte v2 = reader.getByte();
-        final byte v3 = reader.getByte();
+        final byte v1 = (byte) reader.read();
+        final byte v2 = (byte) reader.read();
+        final byte v3 = (byte) reader.read();
 
         if (v1 != '8' || (v2 != '7' && v2 != '9') || v3 != 'a') {
             return false;
@@ -204,7 +453,8 @@ public final class ImageFactory {
         reader.skip(2); // logical screen width
         reader.skip(2); // logical screen height
 
-        final short flags = reader.getUInt8();
+        // read as unsigned int 8
+        final short flags = (short) (reader.read() & 0xFF);
 
         // First three bits = (BPP - 1)
         final int colorTableSize = 1 << ((flags & 7) + 1);
@@ -224,19 +474,65 @@ public final class ImageFactory {
             reader.skip(colorTableSize * 3);
         }
 
-        final byte imageBlockByte = reader.getByte();
-        if (imageBlockByte == 0x2c) {
-            // Is an image block
-            return false;
+        while (true) {
+            int code = reader.read() & 0xff;
+            switch (code) {
+                case 0x2c:
+                    // an image block
+                    return false;
+
+                case 0x21:
+                    // extension
+                    code = reader.read() & 0xff;
+                    switch (code) {
+                        case 0xf9:
+                            return true;
+
+                        case 0xff: // application extension
+                            return true;
+
+                        case 0xfe:// comment extension
+                            skip(reader);
+                            break;
+
+                        case 0x01:// plain text extension
+                            skip(reader);
+                            break;
+
+                        default: // uninteresting extension
+                            skip(reader);
+                            break;
+                    }
+                    break;
+
+                case 0x3b: // terminator
+                default:
+                    return false;
+            }
         }
-        if (imageBlockByte != 0x21) {
-            // If not an image block then 0x21. If not 0x21 then it's something unexpected.
-            return false;
-        }
-        final byte appExtensionOrGraphicBlock = reader.getByte();
-        // Return true if is Application Extension. Magic numbers! Should have been 0xff but -1 or -7 encountered.
-        return appExtensionOrGraphicBlock == 0xff
-                || appExtensionOrGraphicBlock == -1
-                        || appExtensionOrGraphicBlock == -7;
+    }
+
+    /**
+     * Skips variable length blocks up to and including next zero length block.
+     */
+
+    private static void skip(@NonNull final BufferedInputStream reader) throws IOException {
+        int blockSize;
+        do {
+            blockSize = reader.read() & 0xff;
+            if (blockSize > 0) {
+                try {
+                    int n = 0;
+                    int count;
+                    while (n < blockSize) {
+                        count = blockSize - n;
+                        n += reader.skip(count);
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "Error Reading Block", e);
+                    throw new IOException("Format error " + e);
+                }
+            }
+        } while ((blockSize > 0));
     }
 }

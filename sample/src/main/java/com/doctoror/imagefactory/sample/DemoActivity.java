@@ -29,18 +29,20 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DemoActivity extends ActionBarActivity {
+public final class DemoActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_demo);
 
+        //testImageInfo();
         final GridView grid = (GridView) findViewById(R.id.activity_demo_grid);
         grid.setAdapter(new DemoAdapter(this, generateImageInfo()));
     }
@@ -50,27 +52,28 @@ public class DemoActivity extends ActionBarActivity {
         final String[] names = new String[]{
                 "Rotating_earth_(large).gif",
                 "Static_earth.gif",
-                "LoopOnce.gif"
-//                "small.gif",
-//                "smallest.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag.gif",
-//                "ru9gag1.gif",
-//                "ru9gag3.gif",
-//                "ru9gag4.gif"
+                "LoopOnce.gif",
+                "small.gif",
+                "smallest.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag.gif",
+                "ru9gag1.gif",
+                "ru9gag3.gif",
+                "ru9gag4.gif"
         };
         final List<Drawable> list = new ArrayList<>(names.length);
         for (final String name : names) {
             InputStream is = null;
             try {
                 is = getAssets().open(name);
-                final Drawable item = ImageFactory.decodeImage(getResources(), is);
+                final Drawable item = ImageFactory.decodeStream(getResources(), is);
+                //final Drawable item = ImageFactory.decodeByteArray(getResources(), asByteArray(is));
                 if (item != null) {
                     list.add(item);
                 }
@@ -88,6 +91,62 @@ public class DemoActivity extends ActionBarActivity {
         }
         return list;
     }
+
+    private byte[] asByteArray(InputStream is) throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream(is.available() > 0 ? is.available() : 10240);
+        final byte[] buffer = new byte[10240];
+        int read;
+        while ((read = is.read(buffer)) != -1) {
+            baos.write(buffer, 0, read);
+        }
+        return baos.toByteArray();
+    }
+
+//    private void testImageInfo() {
+//        final String[] names = new String[]{
+//                "Rotating_earth_(large).gif",
+//                //"Static_earth.gif",
+//                "LoopOnce.gif"
+////                "small.gif",
+////                "smallest.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag.gif",
+////                "ru9gag1.gif",
+////                "ru9gag3.gif",
+////                "ru9gag4.gif"
+//        };
+//        for (final String name : names) {
+//            System.out.println("name: " + name);
+//            InputStream is = null;
+//            try {
+//                is = getAssets().open(name);
+//                final GifDecoder2 decoder2 = new GifDecoder2();
+//                decoder2.read(is, is.available());
+//                System.out.println("Status: " + decoder2.getStatus());
+//                System.out.println("loop count: " + decoder2.getLoopCount());
+//                for (int i = 0; i < decoder2.getFrameCount(); i++) {
+//                    System.out.println("delay: " + decoder2.getDelay(i));
+//                }
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } finally {
+//                if (is != null) {
+//                    try {
+//                        is.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private static final class DemoAdapter extends BaseAdapter2<Drawable> {
 
