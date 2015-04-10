@@ -6,10 +6,10 @@ android {
 
     defaultConfig {
         applicationId "com.doctoror.imagefactory.sample"
-        minSdkVersion 10
+        minSdkVersion 8
         targetSdkVersion 22
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
     }
     buildTypes {
         release {
