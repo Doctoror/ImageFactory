@@ -280,7 +280,7 @@ public final class ImageFactory {
         if (filePath == null) {
             throw new NullPointerException("filePath must not be null");
         }
-        if (filePath.isEmpty()) {
+        if (filePath.length() == 0) {
             throw new IllegalArgumentException("filePath must not be empty");
         }
         return decodeStreamOrThrow(res, new FileInputStream(filePath), null, options);
