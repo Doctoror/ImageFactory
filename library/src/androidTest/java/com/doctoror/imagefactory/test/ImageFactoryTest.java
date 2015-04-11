@@ -19,6 +19,7 @@ package com.doctoror.imagefactory.test;
 import com.doctoror.imagefactory.ImageFactory;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.test.InstrumentationTestCase;
@@ -35,52 +36,76 @@ public final class ImageFactoryTest extends InstrumentationTestCase {
 
     public void testStaticGifAsAssetInputStream() throws Throwable {
         final Context context = getInstrumentation().getContext();
-        final InputStream is1 = context.getAssets().open("w3c_home.gif");
-        assertFalse(ImageFactory.isAnimatedGif(new BufferedInputStream(is1)));
-        is1.close();
+        final InputStream is1 = context.getAssets()
+                .open("w3c_home.gif", AssetManager.ACCESS_RANDOM);
+        try {
+            assertFalse(ImageFactory.isAnimatedGif(new BufferedInputStream(is1)));
+        } finally {
+            is1.close();
+        }
 
-        final InputStream is = context.getAssets().open("w3c_home.gif");
-        assertTrue(ImageFactory.decodeStream(context.getResources(), is) instanceof BitmapDrawable);
+        final InputStream is = context.getAssets().open("w3c_home.gif", AssetManager.ACCESS_RANDOM);
+        try {
+            assertTrue(ImageFactory
+                    .decodeStream(context.getResources(), is) instanceof BitmapDrawable);
+        } finally {
+            is.close();
+        }
     }
 
     public void testStaticGifAsByteArray() throws Throwable {
         final Context context = getInstrumentation().getContext();
-        final InputStream is1 = context.getAssets().open("w3c_home.gif");
-        final byte[] data = toByteArray(is1);
-        is1.close();
+        final InputStream is1 = context.getAssets()
+                .open("w3c_home.gif", AssetManager.ACCESS_RANDOM);
+        final byte[] data;
+        try {
+            data = toByteArray(is1);
+        } finally {
+            is1.close();
+        }
 
         assertFalse(
                 ImageFactory
                         .isAnimatedGif(new BufferedInputStream(new ByteArrayInputStream(data))));
-        is1.close();
-
         assertTrue(ImageFactory
                 .decodeByteArray(context.getResources(), data) instanceof BitmapDrawable);
     }
 
     public void testLoopOnceAnimatedGifAsAssetInputStream() throws Throwable {
         final Context context = getInstrumentation().getContext();
-        final InputStream is1 = context.getAssets().open("loop_once.gif");
-        assertTrue(ImageFactory.isAnimatedGif(new BufferedInputStream(is1)));
-        is1.close();
+        final InputStream is1 = context.getAssets()
+                .open("loop_once.gif", AssetManager.ACCESS_RANDOM);
+        try {
+            assertTrue(ImageFactory.isAnimatedGif(new BufferedInputStream(is1)));
+        } finally {
+            is1.close();
+        }
 
-        final InputStream is = context.getAssets().open("loop_once.gif");
-        final Drawable result = ImageFactory.decodeStream(context.getResources(), is);
+        final InputStream is = context.getAssets()
+                .open("loop_once.gif", AssetManager.ACCESS_RANDOM);
+        final Drawable result;
+        try {
+            result = ImageFactory.decodeStreamOrThrow(context.getResources(), is, null, null);
+        } finally {
+            is.close();
+        }
         assertTrue(result instanceof GifDrawable);
         assertTrue(((GifDrawable) result).getLoopCount() == 1);
     }
 
     public void testLoopOnceAnimatedGifAsByteArray() throws Throwable {
         final Context context = getInstrumentation().getContext();
-        final InputStream is1 = context.getAssets().open("loop_once.gif");
-        final byte[] data = toByteArray(is1);
-        is1.close();
+        final InputStream is1 = context.getAssets()
+                .open("loop_once.gif", AssetManager.ACCESS_RANDOM);
+        final byte[] data;
+        try {
+            data = toByteArray(is1);
+        } finally {
+            is1.close();
+        }
 
-        assertTrue(
-                ImageFactory
-                        .isAnimatedGif(new BufferedInputStream(new ByteArrayInputStream(data))));
-        is1.close();
-
+        assertTrue(ImageFactory
+                .isAnimatedGif(new BufferedInputStream(new ByteArrayInputStream(data))));
         final Drawable result = ImageFactory.decodeByteArray(context.getResources(), data);
         assertTrue(result instanceof GifDrawable);
         assertTrue(((GifDrawable) result).getLoopCount() == 1);
@@ -88,26 +113,39 @@ public final class ImageFactoryTest extends InstrumentationTestCase {
 
     public void testLoopedAnimatedGifAsAssetInputStream() throws Throwable {
         final Context context = getInstrumentation().getContext();
-        final InputStream is1 = context.getAssets().open("w3c_home_animation.gif");
-        assertTrue(ImageFactory.isAnimatedGif(new BufferedInputStream(is1)));
-        is1.close();
+        final InputStream is1 = context.getAssets()
+                .open("w3c_home_animation.gif", AssetManager.ACCESS_RANDOM);
+        try {
+            assertTrue(ImageFactory.isAnimatedGif(new BufferedInputStream(is1)));
+        } finally {
+            is1.close();
+        }
 
-        final InputStream is = context.getAssets().open("w3c_home_animation.gif");
-        final Drawable result = ImageFactory.decodeStream(context.getResources(), is);
+        final InputStream is = context.getAssets()
+                .open("w3c_home_animation.gif", AssetManager.ACCESS_RANDOM);
+        final Drawable result;
+        try {
+            result = ImageFactory.decodeStream(context.getResources(), is);
+        } finally {
+            is.close();
+        }
         assertTrue(result instanceof GifDrawable);
         assertTrue(((GifDrawable) result).getLoopCount() == 0);
     }
 
     public void testLoopedAnimatedGifAsByteArray() throws Throwable {
         final Context context = getInstrumentation().getContext();
-        final InputStream is1 = context.getAssets().open("w3c_home_animation.gif");
-        final byte[] data = toByteArray(is1);
-        is1.close();
+        final InputStream is1 = context.getAssets()
+                .open("w3c_home_animation.gif", AssetManager.ACCESS_RANDOM);
+        final byte[] data;
+        try {
+            data = toByteArray(is1);
+        } finally {
+            is1.close();
+        }
 
-        assertTrue(
-                ImageFactory
-                        .isAnimatedGif(new BufferedInputStream(new ByteArrayInputStream(data))));
-        is1.close();
+        assertTrue(ImageFactory
+                .isAnimatedGif(new BufferedInputStream(new ByteArrayInputStream(data))));
 
         final Drawable result = ImageFactory.decodeByteArray(context.getResources(), data);
         assertTrue(result instanceof GifDrawable);
