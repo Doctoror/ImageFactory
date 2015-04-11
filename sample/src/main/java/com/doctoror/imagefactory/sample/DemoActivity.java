@@ -19,6 +19,7 @@ package com.doctoror.imagefactory.sample;
 import com.doctoror.imagefactory.ImageFactory;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -78,7 +79,7 @@ public final class DemoActivity extends ActionBarActivity {
         for (final String name : names) {
             InputStream is = null;
             try {
-                is = getAssets().open(name);
+                is = getAssets().open(name, AssetManager.ACCESS_RANDOM);
                 final Drawable item = ImageFactory.decodeStream(getResources(), is);
                 if (item != null) {
                     list.add(item);
