@@ -16,6 +16,7 @@
 
 package com.doctoror.imagefactory;
 
+import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -420,7 +421,13 @@ public final class ImageFactory {
         if (res == null) {
             throw new NullPointerException("Resources must not be null");
         }
-        return decodeStreamOrThrow(res, res.openRawResource(id), null, options);
+
+        final AssetFileDescriptor descriptor = res.openRawResourceFd(id);
+        try {
+            return decodeStreamOrThrow(res, descriptor.createInputStream(), null, options);
+        } finally {
+            descriptor.close();
+        }
     }
 
     /**
