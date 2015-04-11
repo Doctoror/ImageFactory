@@ -6,6 +6,16 @@ Depends on [koral--/android-gif-drawable](https://github.com/koral--/android-gif
 
 Min API level 8
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.doctoror.imagefactory/library/badge.png?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.github.doctoror.imagefactory/library)
+
+Add this to build.gradle dependencies, replacing x.x.x with version number
+
+```groovy
+dependencies {
+    compile 'com.github.doctoror.imagefactory:library:x.x.x'
+}
+```
+
 
 ##License
 
