@@ -117,6 +117,8 @@ public final class DemoActivity extends ActionBarActivity {
                 imageView = (ImageView) convertView.getTag();
             }
 
+            System.out.println("onCreateView: " + position);
+
             imageView.setImageDrawable(getItem(position));
             return convertView;
         }

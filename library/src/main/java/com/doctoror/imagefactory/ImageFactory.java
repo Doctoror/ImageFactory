@@ -118,7 +118,7 @@ public final class ImageFactory {
         final boolean animated = isAnimatedGif(
                 new BufferedInputStream(new ByteArrayInputStream(data)));
         if (animated) {
-            return new GifDrawable(data);
+            return new GifDrawable2(data);
         } else {
             final Bitmap decoded = BitmapFactory.decodeByteArray(data, 0, data.length, options);
             if (decoded == null) {
@@ -206,7 +206,7 @@ public final class ImageFactory {
         final boolean animated = isAnimatedGif(bis);
         bis.reset();
         if (animated) {
-            return new GifDrawable(bis);
+            return new GifDrawable2(bis);
         } else {
             final Bitmap decoded = BitmapFactory.decodeStream(is, outPadding, options);
             if (decoded == null) {
